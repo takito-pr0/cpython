@@ -1,0 +1,96 @@
+import pygame
+import sys
+import random
+
+# Inicializar Pygame
+pygame.init()
+
+# Configuración de la pantalla
+screen_width = 600
+screen_height = 400
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Flappy Bird")
+
+# Colores
+white = (255, 255, 255)
+black = (0, 0, 0)
+
+# Jugador
+player_width = 50
+player_height = 50
+player_x = screen_width // 4
+player_y = screen_height // 2
+
+# Tubos
+tube_width = 50
+tube_height = random.randint(100, screen_height - 100)
+tube_x = screen_width
+tube_y = screen_height - tube_height
+
+tube_speed = 5
+gravity = 1
+jump_strength = 15
+player_velocity = 0
+
+# Puntuación
+score = 0
+font = pygame.font.Font(None, 36)
+
+def game_over():
+    font_game_over = pygame.font.Font(None, 72)
+    text_game_over = font_game_over.render("Game Over", True, black)
+    screen.blit(text_game_over, (screen_width // 2 - 150, screen_height // 2 - 50))
+    pygame.display.flip()
+    pygame.time.wait(2000)
+    pygame.quit()
+    sys.exit()
+
+# Bucle principal
+clock = pygame.time.Clock()
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player_velocity = -jump_strength
+
+    # Mover el jugador
+    player_velocity += gravity
+    player_y += player_velocity
+
+    # Mover los tubos
+    tube_x -= tube_speed
+
+    # Generar nuevos tubos
+    if tube_x < 0:
+        tube_x = screen_width
+        tube_height = random.randint(100, screen_height - 100)
+        tube_y = screen_height - tube_height
+        score += 1
+
+    # Colisiones
+    if (
+        player_x < tube_x + tube_width
+        and player_x + player_width > tube_x
+        and (player_y < tube_y or player_y + player_height > tube_y + tube_height)
+    ):
+        game_over()
+
+    # Dibujar en la pantalla
+    screen.fill(white)
+    pygame.draw.rect(screen, black, [player_x, player_y, player_width, player_height])
+    pygame.draw.rect(screen, black, [tube_x, 0, tube_width, tube_y])
+    pygame.draw.rect(screen, black, [tube_x, tube_y + tube_height, tube_width, screen_height - tube_y - tube_height])
+
+    # Dibujar la puntuación
+    score_text = font.render("Score: " + str(score), True, black)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.flip()
+
+    # Establecer el número de fotogramas por segundo (FPS)
+    clock.tick(30)
